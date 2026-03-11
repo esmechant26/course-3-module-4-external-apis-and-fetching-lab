@@ -59,7 +59,8 @@ function displayAlerts(data) {
 
   // Summary message
   const numOfAlerts = data.features.length;
-  const summaryText = `Weather Alerts: ${numOfAlerts}`;
+  const msg = data.title;
+  const summaryText = `${msg}: ${numOfAlerts}`;
   const summaryItem = document.createElement("li");
   summaryItem.textContent = summaryText;
   alertsDisplay.appendChild(summaryItem);
