@@ -1,80 +1,80 @@
 // index.js
 const weatherApi = "https://api.weather.gov/alerts/active?area=";
-
 const stateInput = document.getElementById("state-input");
 const fetchButton = document.getElementById("fetch-alerts");
 const alertsDisplay = document.getElementById("alerts-display");
-const errorMessage = document.getElementById("error-message");
+const errorDiv = document.getElementById("error-message");
+//linking variables to html ids
 
-// Click handler
 fetchButton.addEventListener("click", () => {
-  const state = stateInput.value.toUpperCase(); // get current input
-  if (!state) return; // do nothing if input is empty
+  const state = stateInput.value.toUpperCase();
+//event listener for button click, assign var state to user input and capitalize
+// once clicked: 
+  // Clear previous alerts and errors
+  alertsDisplay.innerHTML = "";
+  errorDiv.textContent = "";
 
+   //call function
   fetchWeatherAlerts(state);
 
-  // Clear input field after fetch
+  // Clear input field
   stateInput.value = "";
 });
 
 function fetchWeatherAlerts(state) {
-  // Clear previous error
-  errorMessage.textContent = "";
-  errorMessage.classList.add("hidden");
-
   fetch(`${weatherApi}${state}`)
-    .then((response) => {
+  //fetch weather api and var state
+    .then(function(response) {
+      console.log("response object:", response);
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       return response.json();
+      //make js compatible
     })
-    .then((data) => {
+    .then(function(data) {
+      console.log("data object:", data);
       displayAlerts(data);
+      //then run display alerts function passing in API data
     })
-    .catch((err) => {
-  console.error("Error fetching data:", err);
-  showError(err); // pass the actual error
-});
+    .catch(function(err) {
+      console.error("Error fetching data:", err);
+      showError(err);
+    });
 }
 
 function displayAlerts(data) {
   // Clear previous alerts
   alertsDisplay.innerHTML = "";
+  errorDiv.textContent = "";
+  errorDiv.classList.add("hidden"); 
 
-  // Clear any previous error
-  errorMessage.textContent = "";
-  errorMessage.classList.add("hidden");
+  // Check if there are alerts
+  if (!data.features || data.features.length === 0) {
+    const noItem = document.createElement("li");
+    noItem.textContent = "No active alerts.";
+    alertsDisplay.appendChild(noItem);
+    return;
+  }
 
-  const features = Array.isArray(data.features) ? data.features : [];
-  const numOfAlerts = features.length;
-
-  // Summary text must match test expectation
+  // Summary message
+  const numOfAlerts = data.features.length;
   const summaryText = `Weather Alerts: ${numOfAlerts}`;
   const summaryItem = document.createElement("li");
   summaryItem.textContent = summaryText;
   alertsDisplay.appendChild(summaryItem);
 
-  // Update document title
   document.title = summaryText;
 
-  if (numOfAlerts === 0) {
-    const noAlertItem = document.createElement("li");
-    noAlertItem.textContent = "No active alerts.";
-    alertsDisplay.appendChild(noAlertItem);
-    return;
-  }
-
-  // Add all alert headlines
-  features.forEach((alert) => {
+  // List each alert headline
+  data.features.forEach(function(alert) {
     const alertItem = document.createElement("li");
     alertItem.textContent = alert.properties.headline;
     alertsDisplay.appendChild(alertItem);
   });
 }
 
-// Show error message for failed fetch
 function showError(err) {
-  errorMessage.textContent = err.message; // use the actual error message
-  errorMessage.classList.remove("hidden");
+  errorDiv.textContent = err.message; // show actual error message
+  errorDiv.classList.remove("hidden");
 }
